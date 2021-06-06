@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class ListaPage extends StatefulWidget {
@@ -10,6 +12,7 @@ class _ListaPageState extends State<ListaPage> {
 
   List<int> _listaNumeros = [];
   int _ultimoItem = 0;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -19,7 +22,8 @@ class _ListaPageState extends State<ListaPage> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        _agregar10();
+        // _agregar10();
+        fetchData();
       }
     });
   }
@@ -30,8 +34,19 @@ class _ListaPageState extends State<ListaPage> {
       appBar: AppBar(
         title: Text('Listas'),
       ),
-      body: _crearLista(),
+      body: Stack(
+        children: [
+          _crearLista(),
+          _crearLoading(),
+        ],
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
   }
 
   Widget _crearLista() {
@@ -53,5 +68,42 @@ class _ListaPageState extends State<ListaPage> {
     }
 
     setState(() {});
+  }
+
+  Future<Null> fetchData() async {
+    _isLoading = true;
+    setState(() {});
+
+    final duration = new Duration(seconds: 2);
+    new Timer(duration, respuestaHTTP);
+  }
+
+  void respuestaHTTP() {
+    _isLoading = false;
+    _scrollController.animateTo(_scrollController.position.pixels + 100,
+        curve: Curves.fastOutSlowIn, duration: Duration(milliseconds: 200));
+
+    _agregar10();
+  }
+
+  Widget _crearLoading() {
+    if (_isLoading) {
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+            ],
+          ),
+          SizedBox(
+            height: 15.0,
+          )
+        ],
+      );
+    }
+    return Container();
   }
 }
